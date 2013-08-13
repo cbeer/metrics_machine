@@ -1,5 +1,7 @@
 # MetricsMachine
 
+[![Build Status](https://travis-ci.org/cbeer/metrics_machine.png?branch=master)](https://travis-ci.org/cbeer/metrics_machine)
+
 TODO: Write a gem description
 
 ## Installation
