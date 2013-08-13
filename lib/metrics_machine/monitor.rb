@@ -9,7 +9,7 @@ module MetricsMachine
     def initialize reporter, options = {}, &block
       @reporter = reporter
       @monitors = {}
-      @prefix = options.fetch(:prefix, "metrics_machine")
+      @prefix = options.fetch(:prefix, self.class.default_prefix)
       instance_eval &block
       run!
     end
@@ -45,6 +45,10 @@ module MetricsMachine
       key ||= klass.key if klass.respond_to? :key
       key ||= ActiveSupport::Inflector.underscore(klass.to_s.gsub('MetricsMachine::', ''))
       monitors[key] = c
+    end
+
+    def self.default_prefix
+      `hostname`.strip
     end
 
   end

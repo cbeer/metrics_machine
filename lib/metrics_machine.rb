@@ -8,7 +8,7 @@ module MetricsMachine
   autoload :Monitor, "metrics_machine/monitor"
   autoload :Railtie, "metrics_machine/railtie"
 
-  def self.start &block
+  def self.start options = {}, &block
 
     thread = if defined?(PhusionPassenger)
                PhusionPassenger.on_event(:starting_worker_process) do |forked|
@@ -27,12 +27,12 @@ module MetricsMachine
                }
              end
 
-    Monitor.new reporter, &block if block_given?
+    Monitor.new reporter, options, &block if block_given?
     thread
   end
 
-  def self.configure &block
-    Monitor.new reporter, &block if block_given?
+  def self.configure options = {}, &block
+    Monitor.new reporter, options, &block if block_given?
   end
 
   def self.die_gracefully_on_signal
