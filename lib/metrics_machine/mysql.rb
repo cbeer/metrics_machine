@@ -1,11 +1,11 @@
 module MetricsMachine
   class Mysql
 
-    attr_reader :connection, :options
+    attr_reader :base, :options
 
-    def initialize connection, *args
+    def initialize base, *args
       @options = args.extract_options!
-      @connection = connection
+      @base = base
     end
 
     def interval
@@ -13,8 +13,10 @@ module MetricsMachine
     end
 
     def statistics
-      fetch_status.each do |k,v|
-        fetch_status[k] = case v
+      status = fetch_status
+
+      status.each do |k,v|
+        status[k] = case v
         when "OFF", "NULL", "NONE"
           0
         when "ON", "TRUE"
@@ -28,11 +30,11 @@ module MetricsMachine
     private
 
     def fetch_status
-      Hash[*connection.execute("SHOW GLOBAL STATUS").map.to_a.flatten]
+      Hash[*base.connection.execute("SHOW GLOBAL STATUS").map.to_a.flatten]
     end
 
     def fetch_variables
-      Hash[*connection.execute("SHOW GLOBAL VARIABLES").map.to_a.flatten]
+      Hash[*base.connection.execute("SHOW GLOBAL VARIABLES").map.to_a.flatten]
     end
   end
 end

@@ -7,34 +7,36 @@ require "psych"
 
 module MetricsMachine
   autoload :Monitor, "metrics_machine/monitor"
-  autoload :Railtie, "metrics_machine/railtie"
+  require "metrics_machine/railtie" if defined? Rails
   autoload :Mysql, "metrics_machine/mysql"
 
   def self.start options = {}, &block
+    monitor.configure &block if block_given?
 
-    thread = if defined?(PhusionPassenger)
-               PhusionPassenger.on_event(:starting_worker_process) do |forked|
-                 if forked && EM.reactor_running?
-                   EM.stop
-                 end
-                 Thread.new { EM.run }
-                 die_gracefully_on_signal
-               end
-             else
-               # faciliates debugging
-               Thread.abort_on_exception = true
-               # just spawn a thread and start it up
-               Thread.new {
-                 EM.run
-               }
-             end
-
-    Monitor.new reporter, options, &block if block_given?
-    thread
+    p = lambda { EM.run { monitor.run! } }
+    if defined?(PhusionPassenger)
+      PhusionPassenger.on_event(:starting_worker_process) do |forked|
+        if forked && EM.reactor_running?
+          EM.stop
+        end
+    
+        Thread.new &p
+        die_gracefully_on_signal
+      end
+    else
+      # faciliates debugging
+      Thread.abort_on_exception = true
+      # just spawn a thread and start it up
+      Thread.new &p
+    end
   end
 
-  def self.configure options = {}, &block
-    Monitor.new reporter, options, &block if block_given?
+  def self.monitor
+    @monitor ||= Monitor.new reporter
+  end
+
+  def self.configure &block
+    monitor.configure &block
   end
 
   def self.die_gracefully_on_signal
@@ -49,14 +51,14 @@ module MetricsMachine
   private
   def self.reporter_config
     @reporter_config ||= begin
-      path = if has_rails? and File.exists? "#{Rails.root}/config/statsd.yml"
+      path = if defined? Rails and File.exists? "#{Rails.root}/config/statsd.yml"
                "#{Rails.root}/config/statsd.yml"
              else
-               File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "statsd.yml"))
+               File.expand_path(File.join(File.dirname(__FILE__), "..", "config", "statsd.yml"))
              end
       data = Psych.load(ERB.new(IO.read(path)).result(binding))
 
-      if has_rails?
+      if defined? Rails
         data[Rails.env]
       else
         data["default"]
@@ -64,7 +66,4 @@ module MetricsMachine
     end
   end
 
-  def self.has_rails?
-    const_defined? "Rails"
-  end
 end

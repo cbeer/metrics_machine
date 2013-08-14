@@ -4,14 +4,25 @@ require 'active_support/inflector/transliterate'
 module MetricsMachine
   class Monitor
 
-    attr_reader :prefix, :monitors, :reporter
+    attr_reader :monitors, :reporter
 
     def initialize reporter, options = {}, &block
       @reporter = reporter
       @monitors = {}
       @prefix = options.fetch(:prefix, self.class.default_prefix)
+      configure &block if block_given?
+    end
+
+    def prefix *args
+      if args.empty?
+        @prefix
+      else
+        @prefix = args.first
+      end
+    end
+
+    def configure &block
       instance_eval &block
-      run!
     end
 
     def run!
