@@ -2,11 +2,13 @@ require "metrics_machine/version"
 require "metrics_machine/monitor"
 require "statsd"
 require "eventmachine"
+require "erb"
 require "psych"
 
 module MetricsMachine
   autoload :Monitor, "metrics_machine/monitor"
   autoload :Railtie, "metrics_machine/railtie"
+  autoload :Mysql, "metrics_machine/mysql"
 
   def self.start options = {}, &block
 
@@ -52,7 +54,7 @@ module MetricsMachine
              else
                File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "config", "statsd.yml"))
              end
-      data = Psych.load_file(path)
+      data = Psych.load(ERB.new(IO.read(path)).result(binding))
 
       if has_rails?
         data[Rails.env]

@@ -1,0 +1,7 @@
+default: &DEFAULT
+  host: <%= ENV['STATSD_URL'] || 'localhost' %>
+  port: <%= ENV['STATSD_PORT'] || 8125 %>
+
+development: *DEFAULT
+test: *DEFAULT
+production: *DEFAULT
