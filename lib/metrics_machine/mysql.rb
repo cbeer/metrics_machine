@@ -1,6 +1,5 @@
 module MetricsMachine
   class Mysql
-    INTERVAL = 15
 
     attr_reader :connection, :options
 
@@ -10,7 +9,7 @@ module MetricsMachine
     end
 
     def interval
-      self.class.INTERVAL
+      15
     end
 
     def statistics
