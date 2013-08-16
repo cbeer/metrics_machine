@@ -59,7 +59,7 @@ module MetricsMachine
     end
 
     def self.default_prefix
-      `hostname`.strip
+      `hostname`.strip.split('.').reverse.join('.')
     end
 
   end
