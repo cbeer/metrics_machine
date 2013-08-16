@@ -9,8 +9,8 @@ describe MetricsMachine do
 
     def statistics
       { "some-value" => 50 }
-      end
     end
+  end
 
   it 'should do something' do
 
